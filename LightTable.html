@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Light Table Exhibition Prototype</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #eaeaea;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    h1 {
+        margin-bottom: 5px;
+    }
+
+    p {
+        max-width: 650px;
+        text-align: center;
+        font-size: 14px;
+        margin-bottom: 15px;
+        color: #cccccc;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #3a3a3a;
+        color: white;
+    }
+
+    button:hover {
+        background-color: #555;
+    }
+
+    #workspace {
+        width: 750px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    #lightTable {
+        width: 320px;
+        height: 320px;
+        background-color: #2a2a2a;
+        border: 4px solid #777;
+        position: relative;
+        transition: background-color 0.4s, box-shadow 0.4s;
+    }
+
+    #lightTable.on {
+        background-color: #f0f0f0;
+        box-shadow: 0 0 40px #ffffff;
+    }
+
+    #platesContainer {
+        display: flex;
+        gap: 20px;
+        flex-direction: column;
+    }
+
+    .plate {
+        width: 110px;
+        height: 110px;
+        background-color: #555;
+        border: 2px solid #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        position: relative;
+    }
+
+    .plate:active {
+        cursor: grabbing;
+    }
+
+    .star {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background-color: white;
+        position: relative;
+        transition: opacity 0.4s;
+    }
+
+    /* Dark spots INSIDE the star */
+    .spot {
+        width: 6px;
+        height: 6px;
+        background-color: #222;
+        border-radius: 50%;
+        position: absolute;
+    }
+
+    /* Different base brightness per plate */
+    .p1 .star { opacity: 0.25; }
+    .p2 .star { opacity: 0.35; }
+    .p3 .star { opacity: 0.45; }
+
+    /* Brightening when light table is ON */
+    .on-table.on.p1 .star { opacity: 0.65; }
+    .on-table.on.p2 .star { opacity: 0.8; }
+    .on-table.on.p3 .star { opacity: 1; }
+</style>
+</head>
+
+<body>
+
+<h1>Light Table Analysis Prototype</h1>
+<p>
+    Toggle the light table on and off, then drag photographic plates onto it.
+    Notice how brightness differences and imperfections become clearer
+    when the plate is illuminated.
+</p>
+
+<button onclick="toggleLight()">Toggle Light Table</button>
+
+<div id="workspace">
+    <div id="platesContainer">
+
+        <div class="plate p1" draggable="true">
+            <div class="star">
+                <div class="spot" style="top:15px; left:20px;"></div>
+                <div class="spot" style="bottom:20px; right:15px;"></div>
+            </div>
+        </div>
+
+        <div class="plate p2" draggable="true">
+            <div class="star">
+                <div class="spot" style="top:10px; right:20px;"></div>
+                <div class="spot" style="bottom:18px; left:18px;"></div>
+            </div>
+        </div>
+
+        <div class="plate p3" draggable="true">
+            <div class="star">
+                <div class="spot" style="top:22px; left:30px;"></div>
+                <div class="spot" style="bottom:12px; right:25px;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="lightTable"></div>
+</div>
+
+<script>
+    const lightTable = document.getElementById("lightTable");
+    let lightOn = false;
+    let draggedPlate = null;
+
+    function toggleLight() {
+        lightOn = !lightOn;
+        lightTable.classList.toggle("on", lightOn);
+
+        document.querySelectorAll(".plate.on-table").forEach(plate => {
+            plate.classList.toggle("on", lightOn);
+        });
+    }
+
+    document.querySelectorAll(".plate").forEach(plate => {
+        plate.addEventListener("dragstart", () => {
+            draggedPlate = plate;
+        });
+
+        plate.addEventListener("dragend", () => {
+            draggedPlate = null;
+        });
+    });
+
+    lightTable.addEventListener("dragover", e => {
+        e.preventDefault();
+    });
+
+    lightTable.addEventListener("drop", () => {
+        if (draggedPlate) {
+            draggedPlate.classList.add("on-table");
+            draggedPlate.classList.toggle("on", lightOn);
+            lightTable.appendChild(draggedPlate);
+        }
+    });
+
+    document.body.addEventListener("dragover", e => {
+        e.preventDefault();
+    });
+
+    document.body.addEventListener("drop", e => {
+        if (draggedPlate && !lightTable.contains(e.target)) {
+            draggedPlate.classList.remove("on-table", "on");
+            document.getElementById("platesContainer").appendChild(draggedPlate);
+        }
+    });
+</script>
+
+</body>
+</html>
